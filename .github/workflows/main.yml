@@ -1,0 +1,69 @@
+name: Python Continuous Integration
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  PYTHON_VERSION: 3.10.11
+  AZURE_RESOURCE_GROUP_NAME: "azure-ml-yola"
+  AZURE_LOCATION: "northeurope"
+  AZURE_ML_WORKSPACE_NAME: "cats-dogs-yola"
+
+permissions:
+  id-token: write
+  contents: read
+jobs:
+
+  train_unit_tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install --user poetry
+    - name: Run unit tests Packages Extraction
+      working-directory: train/extraction
+      run: |
+        poetry install
+        poetry run coverage run -m unittest tests.extraction_tests
+        poetry run coverage report
+  train:
+    runs-on: ubuntu-latest
+    environment: MLOpsPython
+    needs: train_unit_tests
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install --user poetry
+        chmod +x ./Makefile
+        ./Makefile
+    - name: azure login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    - name: Run Train Pipeline
+      run: |
+          chmod +x ./setup_AzureML.sh
+          ./setup_AzureML.sh ${{ secrets.AZURE_SUBSCRIPTION_ID }} ${{ env.AZURE_RESOURCE_GROUP_NAME }} ${{ env.AZURE_ML_WORKSPACE_NAME }} ${{ env.AZURE_LOCATION }}
+          chmod +x ./run_AzureML.sh
+          ./run_AzureML.sh ${{ secrets.AZURE_SUBSCRIPTION_ID }} ${{ env.AZURE_RESOURCE_GROUP_NAME }} ${{ env.AZURE_ML_WORKSPACE_NAME }} ${{ env.AZURE_LOCATION }}
+      working-directory: train

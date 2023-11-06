@@ -87,6 +87,6 @@ class ExtractImages:
                 filename = "{0}_page{1}_index{2}.png".format(pdf_path.stem, str(image_stream.index_page),
                                                              str(image_stream.index_image))
                 number_images_output = number_images_output + 1
-                manager.save_image(image_stream, str(Path(images_directory_path) / filename))
+                manager.save_image(image_stream.image_bytes_io, str(Path(images_directory_path) / filename))
 
         return ExtractImagesResult(number_files_input=len(pdfs), number_images_output=number_images_output)
