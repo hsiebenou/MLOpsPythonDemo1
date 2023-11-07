@@ -59,6 +59,7 @@ gh secret set AZURE_SUBSCRIPTION_ID --body "$subscriptionId" --env "$environment
 gh secret set AZURE_CLIENT_ID --body "$appId" --env "$environmentName"
 
 # Run the GitHub workflow
+gh workflow enable main.yml
 gh workflow run main.yml
 
 # Get the run ID
