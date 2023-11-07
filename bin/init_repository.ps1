@@ -60,7 +60,7 @@ gh secret set AZURE_SUBSCRIPTION_ID --body $subscriptionId --env $environmentNam
 gh secret set AZURE_CLIENT_ID --body $appId --env $environmentName
 
 # Run workflow
-gh workflow enable main.yaml
+gh workflow enable main.yml
 gh workflow run main.yml
 $runId=$(gh run list --workflow=main.yml --json databaseId -q ".[0].databaseId")
 gh run watch $runId
