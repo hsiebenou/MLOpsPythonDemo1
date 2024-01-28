@@ -57,13 +57,11 @@ jobs:
     - name: azure login
       uses: azure/login@v1
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        creds: ${{secrets.AZURE_CREDENTIALS}}
     - name: Run Train Pipeline
       run: |
           chmod +x ./setup_AzureML.sh
           ./setup_AzureML.sh ${{ secrets.AZURE_SUBSCRIPTION_ID }} ${{ env.AZURE_RESOURCE_GROUP_NAME }} ${{ env.AZURE_ML_WORKSPACE_NAME }} ${{ env.AZURE_LOCATION }}
           chmod +x ./run_AzureML.sh
-          ./run_AzureML.sh ${{ secrets.AZURE_SUBSCRIPTION_ID }} ${{ env.AZURE_RESOURCE_GROUP_NAME }} ${{ env.AZURE_ML_WORKSPACE_NAME }} ${{ env.AZURE_LOCATION }}
+          ./run_AzureML.sh ${{ secrets.AZURE_SUBSCRIPTION_ID }} ${{ env.AZURE_RESOURCE_GROUP_NAME }} ${{ env.AZURE_ML_WORKSPACE_NAME }} ${{ env.AZURE_LOCATION }} "{\"git\":\"${{ github.head_ref }}.${{ github.sha }}\",\"version\":\"${{ needs.tags.outputs.new_version }}\",\"triggering_actor\":\"${{github.triggering_actor}}\"}"
       working-directory: train
